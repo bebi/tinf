@@ -42,7 +42,7 @@ void ispis_bajt(bajt_t bajt) {
 		printf("%#.2x %d\t", bajt.bajt, bajt.broj_pojavljivanja);
 	for(i=0;i<bajt.duljina_koda;i++)
 		printf("%c",bajt.kod[i]);
-	printf("\n");
+	printf("\t%d\n",bajt.duljina_koda);
 }
 
 void ispis_polja(bajt_t * polje,int velicina) {
@@ -97,21 +97,36 @@ void dodaj_u_polje(bajt_t * polje,int *velicina,bajt_t * cvor) {
 	free(tmp);
 }
 
-void ispis_stabla(bajt_t *korijen,char znak,char *prefix,int duljina){
+void prepisi_kod(bajt_t *cvor){
+	int i;
+	for(i=0;i<cvor->duljina_koda;i++){
+		polje_bajtova[(int)cvor->bajt].kod[i]=cvor->kod[i];
+	}
+	polje_bajtova[(int)cvor->bajt].duljina_koda=cvor->duljina_koda;
+}
+
+void kodiraj_stablo(bajt_t *korijen,char znak,char *prefix,int duljina_prefixa){
+	int i;
+	if(znak!='#'){
+		for(i=0;i<duljina_prefixa;i++){
+			korijen->kod[i]=prefix[i];
+		}
+		korijen->duljina_koda=duljina_prefixa+1;
+		korijen->kod[duljina_prefixa]=znak;
+	}
+	
+	
 	if(korijen->lijevo==NULL && korijen->desno==NULL){
-		ispis_bajt(*korijen);
+		//ispis_bajt(*korijen);
+		prepisi_kod(korijen);
 		return;
 	}
-	
-	int i;
-	for(i=0;i<duljina;i++){
-		korijen->kod[i]=prefix[i];
+	else{
+		ispis_stabla(korijen->lijevo,'0',korijen->kod,korijen->duljina_koda);
+		ispis_stabla(korijen->desno,'1',korijen->kod,korijen->duljina_koda);
 	}
-	korijen->duljina_koda=++duljina;
-	korijen->kod[korijen->duljina_koda]=znak;
 	
-	ispis_stabla(korijen->lijevo,'0',korijen->kod,korijen->duljina_koda);
-	ispis_stabla(korijen->desno,'1',korijen->kod,korijen->duljina_koda);
+	
 }
 
 int main(int argc,char** argv) {
@@ -158,8 +173,10 @@ int main(int argc,char** argv) {
 		dodaj_u_polje(tmp1,&velicina,zbroji(pop(tmp1,&velicina),pop(tmp1,&velicina)));
 	}
 	//ispis_polja(tmp1,velicina);
-	ispis_stabla(tmp1,'#',NULL,0);
-	
+	char prefix[255];
+	prefix[0]='#';
+	kodiraj_stablo(tmp1,'#',prefix,1);
+	ispis_polja(polje_bajtova,256);
 	//ispis
 	
 
