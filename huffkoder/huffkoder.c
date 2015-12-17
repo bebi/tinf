@@ -3,8 +3,7 @@
 #include <string.h>
 
 
-typedef struct bajt_s
-{
+typedef struct bajt_s{
 	unsigned char bajt;
 	int broj_pojavljivanja;
 	struct bajt_s* lijevo, *desno;
@@ -122,12 +121,13 @@ void kodiraj_stablo(bajt_t *korijen,char znak,char *prefix,int duljina_prefixa){
 		return;
 	}
 	else{
-		ispis_stabla(korijen->lijevo,'0',korijen->kod,korijen->duljina_koda);
-		ispis_stabla(korijen->desno,'1',korijen->kod,korijen->duljina_koda);
+		kodiraj_stablo(korijen->lijevo,'1',korijen->kod,korijen->duljina_koda);
+		kodiraj_stablo(korijen->desno,'0',korijen->kod,korijen->duljina_koda);
 	}
 	
 	
 }
+
 
 int main(int argc,char** argv) {
 	if (argc != 4) {
@@ -156,15 +156,13 @@ int main(int argc,char** argv) {
 
 	//citanje ulaza
 	i = velicina_ulaz;
-	unsigned char bajt;
-	while(i)
-	{
-		fread(&bajt, sizeof(bajt), 1, ulaz);
-		polje_bajtova[(int)bajt].broj_pojavljivanja++;
-		i--;
+	unsigned char *ulazni_bajtovi=(unsigned char *)malloc(velicina_ulaz*sizeof(char));
+	for(i=0;i<velicina_ulaz;i++){
+		fread((ulazni_bajtovi+i), sizeof(char), 1, ulaz);
+		polje_bajtova[(int)ulazni_bajtovi[i]].broj_pojavljivanja++;
 	}
 
-	//kodiranje	
+	//stvaranje koda	
 	bajt_t *tmp1;
 	tmp1 = (bajt_t*)malloc(velicina*sizeof(bajt_t));
 	memcpy(tmp1, polje_bajtova, velicina*sizeof(bajt_t));
@@ -172,13 +170,32 @@ int main(int argc,char** argv) {
 		sortiraj(tmp1,velicina);
 		dodaj_u_polje(tmp1,&velicina,zbroji(pop(tmp1,&velicina),pop(tmp1,&velicina)));
 	}
-	//ispis_polja(tmp1,velicina);
 	char prefix[255];
 	prefix[0]='#';
 	kodiraj_stablo(tmp1,'#',prefix,1);
-	ispis_polja(polje_bajtova,256);
-	//ispis
 	
+	//ispis u tablicu
+	for(i=0;i<256;i++){
+		fprintf(tablica,"%s\n",polje_bajtova[i].kod);
+	}
+	
+	//kopresija ulazne datoteke
+	unsigned char buffer='\0';
+	bajt_t tmp;
+	int j,buffer_counter=0;
+	for(i=0;i<velicina_ulaz;i++){
+		tmp=polje_bajtova[(int)ulazni_bajtovi[i]];
+		for(j=0;j<tmp.duljina_koda;j++){
+			if(buffer_counter==8){
+				fwrite(&buffer,sizeof(char),1,izlaz);
+				buffer='\0';
+				buffer_counter=0;
+			}
+			buffer|=tmp.kod[j]-(int)'0';
+			buffer<<=1;
+			buffer_counter++;
+		}				
+	}
 
 	fclose(ulaz);
 	fclose(tablica);
