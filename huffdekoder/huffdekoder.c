@@ -3,6 +3,7 @@
 #include <string.h>
 
 
+
 int main(int argc,char** argv) {
 	if (argc != 4) {
 		printf("krivi broj parametara!\n");
@@ -31,9 +32,38 @@ int main(int argc,char** argv) {
 		fscanf(tablica,"%s",polje_kodova[i]);
 	}
 	
-	for(i=0;i<256;i++){
-		printf("%s\n",polje_kodova[i]);
+	//for(i=0;i<256;i++){
+	//	printf("%s\n",polje_kodova[i]);
+	//}
+	
+	unsigned char *tmp=ulazni_bajtovi;
+	unsigned char buffer,bit;
+	int valjani_kodovi[256];
+	while(1){
+		if(tmp==NULL) break;
+		buffer=*tmp;
+		for(i=8;i>0;i--){
+			bit=buffer&i;
+			if((int)bit|0>0){
+				bit='1';
+			}
+			else{
+				bit='0';
+			}
+			for(j=0;i<256;j++){
+				for(k=0;k<256;k++){
+					if(bit==polje_kodova[j][k]){
+						valjani_kodovi[j]=1;
+					}
+					else{
+						valjani_kodovi[j]=0;
+					}
+				}
+			}
+		}
+		
 	}
+	
 
 	
 	fclose(ulaz);
