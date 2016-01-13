@@ -2,7 +2,28 @@
 #include <malloc.h>
 #include <string.h>
 
+int broj_valjanih_kodova(int *polje,int velicina){
+	int i,counter=0;
+	for(i=0;i<velicina;i++){
+		if(polje[i]==1)
+			counter++;
+		}
+	return counter;
+}
 
+int maska(int broj){
+	if(broj==1)
+		return 0;
+	else
+		return (1<<(broj-1));
+}
+
+void reset_polja(int *polje,int velicina){
+	int i;
+	for(i=0;i<velicina;i++){
+		polje[i]=1;
+	}
+}
 
 int main(int argc,char** argv) {
 	if (argc != 4) {
@@ -35,32 +56,42 @@ int main(int argc,char** argv) {
 	//for(i=0;i<256;i++){
 	//	printf("%s\n",polje_kodova[i]);
 	//}
-	
-	unsigned char *tmp=ulazni_bajtovi;
+	char tmp;
 	unsigned char buffer,bit;
-	int valjani_kodovi[256];
+	int valjani_kodovi[256],k=0,j;
+	reset_polja(valjani_kodovi,256);
 	while(1){
-		if(tmp==NULL) break;
-		buffer=*tmp;
+		if(k==velicina_ulaz) break;
+		buffer=ulazni_bajtovi[k];
 		for(i=8;i>0;i--){
-			bit=buffer&i;
-			if((int)bit|0>0){
+			bit=buffer&maska(i);
+			
+			if(bit>0){
 				bit='1';
 			}
 			else{
 				bit='0';
 			}
-			for(j=0;i<256;j++){
-				for(k=0;k<256;k++){
-					if(bit==polje_kodova[j][k]){
-						valjani_kodovi[j]=1;
-					}
-					else{
-						valjani_kodovi[j]=0;
-					}
+			for(j=0;j<256;j++){
+				if(valjani_kodovi[j]==1 && bit==polje_kodova[j][8*k+(8-i)]){
+					valjani_kodovi[j]=1;
 				}
+				else{
+					valjani_kodovi[j]=0;
+				}				
+			}
+			if(broj_valjanih_kodova(valjani_kodovi,256)==1){
+				for(j=0;j<256;j++)
+					if(valjani_kodovi[j]==1) break;
+				
+				tmp=(char)j;
+				fwrite(&tmp,sizeof(char),1,izlaz);
+				reset_polja(valjani_kodovi,256);
+				if(i!=1) continue;
+				else break;
 			}
 		}
+		k++;
 		
 	}
 	
