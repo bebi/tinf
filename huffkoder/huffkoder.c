@@ -192,10 +192,11 @@ int main(int argc,char** argv) {
 				buffer_counter=0;
 			}
 			buffer|=tmp.kod[j]-(int)'0';
-			buffer<<=1;
+			if(buffer_counter<7) buffer<<=1;
 			buffer_counter++;
 		}				
 	}
+		
 
 	fclose(ulaz);
 	fclose(tablica);

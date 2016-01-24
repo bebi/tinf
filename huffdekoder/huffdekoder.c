@@ -2,29 +2,6 @@
 #include <malloc.h>
 #include <string.h>
 
-int broj_valjanih_kodova(int *polje,int velicina){
-	int i,counter=0;
-	for(i=0;i<velicina;i++){
-		if(polje[i]==1)
-			counter++;
-		}
-	return counter;
-}
-
-int maska(int broj){
-	if(broj==1)
-		return 0;
-	else
-		return (1<<(broj-1));
-}
-
-void reset_polja(int *polje,int velicina){
-	int i;
-	for(i=0;i<velicina;i++){
-		polje[i]=1;
-	}
-}
-
 int main(int argc,char** argv) {
 	if (argc != 4) {
 		printf("krivi broj parametara!\n");
@@ -41,62 +18,65 @@ int main(int argc,char** argv) {
 	rewind(ulaz);
 	int i;
 
-	//citanje ulaza
-	i = velicina_ulaz;
-	unsigned char *ulazni_bajtovi=(unsigned char *)malloc(velicina_ulaz*sizeof(char));
-	for(i=0;i<velicina_ulaz;i++){
-		fread((ulazni_bajtovi+i), sizeof(char), 1, ulaz);
-	}
-	
 	char polje_kodova[256][256];
 	for(i=0;i<256;i++){
 		fscanf(tablica,"%s",polje_kodova[i]);
 	}
-	
-	//for(i=0;i<256;i++){
-	//	printf("%s\n",polje_kodova[i]);
-	//}
-	char tmp;
-	unsigned char buffer,bit;
-	int valjani_kodovi[256],k=0,j;
-	reset_polja(valjani_kodovi,256);
-	while(1){
-		if(k==velicina_ulaz) break;
-		buffer=ulazni_bajtovi[k];
-		for(i=8;i>0;i--){
-			bit=buffer&maska(i);
-			
-			if(bit>0){
-				bit='1';
+
+	unsigned char buffer[136]={0},justRead[18],*toAppend=(unsigned char*)malloc(1),temp[8];
+	int preostali_bajtovi=velicina_ulaz, j, k, m, l, buff_pozicija, trenutni_znak, duljina_koda, br_bajtova, bitova_procitano=0;
+	fread(justRead, 17, 1, ulaz);
+	justRead[17] = '\0';
+	while(preostali_bajtovi > 0){
+		buff_pozicija = 0;
+		for(j=0; j<17; j++){
+			trenutni_znak = justRead[j];
+			for(k=0; k<8; k++){
+				temp[k] = trenutni_znak%2 + 48;
+				trenutni_znak/=2;
 			}
-			else{
-				bit='0';
-			}
-			for(j=0;j<256;j++){
-				if(valjani_kodovi[j]==1 && bit==polje_kodova[j][8*k+(8-i)]){
-					valjani_kodovi[j]=1;
-				}
-				else{
-					valjani_kodovi[j]=0;
-				}				
-			}
-			if(broj_valjanih_kodova(valjani_kodovi,256)==1){
-				for(j=0;j<256;j++)
-					if(valjani_kodovi[j]==1) break;
-				
-				tmp=(char)j;
-				fwrite(&tmp,sizeof(char),1,izlaz);
-				reset_polja(valjani_kodovi,256);
-				if(i!=1) continue;
-				else break;
-			}
+			for(k=0; k<8; k++)
+				buffer[buff_pozicija++] = temp[7-k];
 		}
-		k++;
-		
+		for(j=0; j<256; j++)
+			if(preostali_bajtovi > 0 && (strstr((char*)buffer, polje_kodova[j]) - (char*)buffer == 0)){
+				duljina_koda = strlen(polje_kodova[j]);
+				bitova_procitano += duljina_koda;
+				for(k=duljina_koda; k<136; k++)
+					buffer[k-duljina_koda] = buffer[k];
+				buffer[136-bitova_procitano]='\0';
+				br_bajtova = (136-strlen((char*)buffer))/8;
+
+				for(k=0; k<br_bajtova; k++){
+					bitova_procitano -=8;
+					fread(toAppend, 1, 1, ulaz);
+					for(m=1; m<17; m++)
+						justRead[m-1]=justRead[m];
+					justRead[16] = *toAppend;
+					justRead[17] = '\0';
+					preostali_bajtovi--;
+					buff_pozicija = 0;
+					for(m=0; m<17; m++){
+						trenutni_znak = justRead[m];
+						for(l=0; l<8; l++){
+							temp[l] = trenutni_znak%2 + 48;
+							trenutni_znak/=2;
+						}
+						for(l=0; l<8; l++)
+							buffer[buff_pozicija++] = temp[7-l];
+					}
+					if(bitova_procitano>0)
+						for(m=bitova_procitano; m<136; m++)
+							buffer[m-bitova_procitano]=buffer[m];
+				}
+				fprintf(izlaz, "%c", (char)j);
+				j=0;
+			}
+
 	}
 	
+	fprintf(izlaz, "%c", '\n');
 
-	
 	fclose(ulaz);
 	fclose(tablica);
 	fclose(izlaz);
