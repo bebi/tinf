@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct _list_t_ {
     char *str;
     unsigned short *index;
     struct _list_t_ *next;
-} list, list2;
+} list;
 typedef struct _hash_table_t_ {
     int size;
     list **table;
@@ -152,18 +153,18 @@ int add(hashTable *hashtable, char *str, unsigned short *index)
 void freeTable(hashTable *hashtable)
 {
     int i;
-    list *list, *temp;
+    list *list, *tmp;
 
     if (hashtable==NULL) return;
 
     for(i=0; i<hashtable->size; i++) {
         list = hashtable->table[i];
         while(list!=NULL) {
-            temp = list;
+            tmp = list;
             list = list->next;
-            free(temp->str);
-            free(temp->index);
-            free(temp);
+            free(tmp->str);
+            free(tmp->index);
+            free(tmp);
         }
     }
     free(hashtable->table);

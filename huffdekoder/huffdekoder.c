@@ -7,8 +7,7 @@ int main(int argc,char** argv) {
 		printf("krivi broj parametara!\n");
 		return -1;
 	}
-
-	//init
+	
 	FILE *ulaz,*tablica, *izlaz;
 	if ((ulaz = fopen(argv[2], "rb")) == NULL) return(-1);
 	if ((tablica = fopen(argv[1], "r")) == NULL) return(-1);
@@ -23,20 +22,20 @@ int main(int argc,char** argv) {
 		fscanf(tablica,"%s",polje_kodova[i]);
 	}
 
-	unsigned char buffer[136]={0},justRead[18],*toAppend=(unsigned char*)malloc(1),temp[8];
+	unsigned char buffer[136]={0},citaj_ulaz[18],*dodaj=(unsigned char*)malloc(1),tmp[8];
 	int preostali_bajtovi=velicina_ulaz, j, k, m, l, buff_pozicija, trenutni_znak, duljina_koda, br_bajtova, bitova_procitano=0;
-	fread(justRead, 17, 1, ulaz);
-	justRead[17] = '\0';
+	fread(citaj_ulaz, 17, 1, ulaz);
+	citaj_ulaz[17] = '\0';
 	while(preostali_bajtovi > 0){
 		buff_pozicija = 0;
 		for(j=0; j<17; j++){
-			trenutni_znak = justRead[j];
+			trenutni_znak = citaj_ulaz[j];
 			for(k=0; k<8; k++){
-				temp[k] = trenutni_znak%2 + 48;
+				tmp[k] = trenutni_znak%2 + 48;
 				trenutni_znak/=2;
 			}
 			for(k=0; k<8; k++)
-				buffer[buff_pozicija++] = temp[7-k];
+				buffer[buff_pozicija++] = tmp[7-k];
 		}
 		for(j=0; j<256; j++)
 			if(preostali_bajtovi > 0 && (strstr((char*)buffer, polje_kodova[j]) - (char*)buffer == 0)){
@@ -49,21 +48,21 @@ int main(int argc,char** argv) {
 
 				for(k=0; k<br_bajtova; k++){
 					bitova_procitano -=8;
-					fread(toAppend, 1, 1, ulaz);
+					fread(dodaj, 1, 1, ulaz);
 					for(m=1; m<17; m++)
-						justRead[m-1]=justRead[m];
-					justRead[16] = *toAppend;
-					justRead[17] = '\0';
+						citaj_ulaz[m-1]=citaj_ulaz[m];
+					citaj_ulaz[16] = *dodaj;
+					citaj_ulaz[17] = '\0';
 					preostali_bajtovi--;
 					buff_pozicija = 0;
 					for(m=0; m<17; m++){
-						trenutni_znak = justRead[m];
+						trenutni_znak = citaj_ulaz[m];
 						for(l=0; l<8; l++){
-							temp[l] = trenutni_znak%2 + 48;
+							tmp[l] = trenutni_znak%2 + 48;
 							trenutni_znak/=2;
 						}
 						for(l=0; l<8; l++)
-							buffer[buff_pozicija++] = temp[7-l];
+							buffer[buff_pozicija++] = tmp[7-l];
 					}
 					if(bitova_procitano>0)
 						for(m=bitova_procitano; m<136; m++)
